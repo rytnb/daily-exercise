@@ -7,15 +7,28 @@ import org.apache.ibatis.annotations.*;
 @Mapper
 public interface UserMapper {
 
-    // 统一登录接口
+    // 普通用户登录
     @Select("""
-        SELECT u.*, 0 AS userType
-        FROM ordinary_user o
-        JOIN user u ON o.userID = u.userID
-        WHERE (o.userName = #{userName} OR o.phoneNumber = #{phoneNumber})
+        SELECT u.userID, u.userPassword, u.userType, o.userName, o.phoneNumber
+        FROM user u
+        LEFT JOIN ordinary_user o ON u.userID = o.userID
+        WHERE (o.userName = #{userName} OR o.phoneNumber = #{phoneNumber} OR u.userID = #{userID})
           AND u.userPassword = #{userPassword}
+          AND u.userType = 1
         """)
     User login(User user);
+
+    // 管理员登录 - 查询管理员表
+    @Select("""
+        SELECT u.userID, u.userPassword, u.userType, a.adminName as userName, a.adminId as phoneNumber
+        FROM user u
+        LEFT JOIN administrator a ON u.userID = a.userID
+        WHERE (a.adminId = #{userName} OR a.adminName = #{userName} OR u.userID = #{userID})
+          AND u.userPassword = #{userPassword}
+          AND u.userType = 0
+          AND a.adminId IS NOT NULL
+        """)
+    User adminLogin(User user);
 
     // 插入用户基础信息
     @Insert("INSERT INTO user (userPassword, userType) VALUES (#{userPassword}, #{userType})")

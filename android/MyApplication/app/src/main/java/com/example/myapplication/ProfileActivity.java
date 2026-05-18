@@ -110,6 +110,17 @@ public class ProfileActivity extends AppCompatActivity {
                 overridePendingTransition(0, 0);
             });
         }
+
+        LinearLayout logout = findViewById(R.id.logout);
+        if (logout != null) {
+            logout.setOnClickListener(v -> {
+                Intent intent = new Intent(ProfileActivity.this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+                overridePendingTransition(0, 0);
+            });
+        }
     }
 
     private void setupBottomNavigation() {

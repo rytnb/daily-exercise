@@ -7,14 +7,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.myapplication.model.AdminUser;
+import com.example.myapplication.model.OrdinaryUser;
 import com.example.myapplication.model.Result;
 import com.example.myapplication.model.User;
-import com.example.myapplication.model.OrdinaryUser;
 import com.example.myapplication.network.ApiService;
 import com.example.myapplication.network.RetrofitClient;
 
@@ -66,7 +67,12 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                login(username, password);
+                boolean isAdminLogin = cbAdminLogin.isChecked();
+                if (isAdminLogin) {
+                    adminLogin(username, password);
+                } else {
+                    userLogin(username, password);
+                }
             }
         });
 
@@ -87,14 +93,12 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void login(String username, String password) {
-        // 创建只包含必要字段的请求对象
+    private void userLogin(String username, String password) {
         User user = new User();
         user.setUserName(username);
         user.setPhoneNumber(username);
         user.setUserPassword(password);
-        // 不设置 userID 和 userType，避免发送 null 值
-        
+
         Call<Result<User>> call = apiService.login(user);
         call.enqueue(new Callback<Result<User>>() {
             @Override
@@ -103,26 +107,14 @@ public class MainActivity extends AppCompatActivity {
                     Result<User> result = response.body();
                     if (result.getCode() == 200) {
                         Toast.makeText(MainActivity.this, "登录成功", Toast.LENGTH_SHORT).show();
-                        
-                        boolean isAdminLogin = cbAdminLogin.isChecked();
-                        boolean isAgreePrivacy = cbAgreePrivacy.isChecked();
-                        
-                        Class<?> targetActivity;
-                        if (isAdminLogin && isAgreePrivacy) {
-                            targetActivity = AdminPage.class;
-                        } else {
-                            targetActivity = HomePage.class;
-                        }
-                        
-                        Intent intent = new Intent(MainActivity.this, targetActivity);
-                        // 将 User 对象转换为 OrdinaryUser 对象
+
+                        Intent intent = new Intent(MainActivity.this, HomePage.class);
                         if (result.getData() != null) {
                             User user = result.getData();
                             OrdinaryUser ordinaryUser = new OrdinaryUser();
                             ordinaryUser.setUserID(user.getUserID());
                             ordinaryUser.setUserName(user.getUserName());
                             ordinaryUser.setUserPassword(user.getUserPassword());
-                            // 如果后端返回的 phoneNumber 为空，使用登录时输入的用户名作为电话号码
                             String phoneNumber = user.getPhoneNumber();
                             if (phoneNumber == null || phoneNumber.isEmpty()) {
                                 phoneNumber = username;
@@ -147,7 +139,58 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<Result<User>> call, Throwable t) {
-                Log.e("MainActivity", "Login failed", t);
+                Log.e("MainActivity", "User Login failed", t);
+                Toast.makeText(MainActivity.this, "网络请求失败: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void adminLogin(String username, String password) {
+        User user = new User();
+        user.setUserName(username);
+        user.setUserPassword(password);
+
+        Call<Result<User>> call = apiService.adminLogin(user);
+        call.enqueue(new Callback<Result<User>>() {
+            @Override
+            public void onResponse(Call<Result<User>> call, Response<Result<User>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Result<User> result = response.body();
+                    if (result.getCode() == 200) {
+                        Toast.makeText(MainActivity.this, "管理员登录成功", Toast.LENGTH_SHORT).show();
+
+                        Intent intent = new Intent(MainActivity.this, AdminPage.class);
+                        if (result.getData() != null) {
+                            User admin = result.getData();
+                            AdminUser adminUser = new AdminUser();
+                            adminUser.setAdminId(admin.getPhoneNumber());
+                            adminUser.setAdminName(admin.getUserName());
+                            adminUser.setRole("系统管理员");
+                            intent.putExtra("admin_data", adminUser);
+                        } else {
+                            AdminUser defaultAdmin = new AdminUser();
+                            defaultAdmin.setAdminId(username);
+                            defaultAdmin.setAdminName("系统管理员");
+                            defaultAdmin.setRole("系统管理员");
+                            intent.putExtra("admin_data", defaultAdmin);
+                        }
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        String message = result.getMessage();
+                        if (message == null || message.isEmpty()) {
+                            message = "管理员登录失败";
+                        }
+                        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "管理员登录失败", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Result<User>> call, Throwable t) {
+                Log.e("MainActivity", "Admin Login failed", t);
                 Toast.makeText(MainActivity.this, "网络请求失败: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });

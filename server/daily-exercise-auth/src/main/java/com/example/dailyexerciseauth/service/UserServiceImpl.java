@@ -24,6 +24,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public User adminLogin(User user) {
+        return userMapper.adminLogin(user);
+    }
+
+    @Override
     @Transactional
     public boolean register(User user) {
         if (user == null) {

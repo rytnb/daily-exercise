@@ -82,6 +82,18 @@
         <activity
             android:name=".AllPlansActivity"
             android:exported="false" />
+        <activity
+            android:name=".AdminPlanReviewActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdminPlanReviewDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdminPostReviewActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdminPostReviewDetailActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

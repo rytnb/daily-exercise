@@ -31,6 +31,23 @@ public class UserController {
         }
     }
 
+    @PostMapping("/admin/login")
+    public Result adminLogin(@RequestBody User user) {
+        System.out.println("=== Admin Login Request ===");
+        System.out.println("userName: " + user.getUserName());
+        System.out.println("userPassword: " + user.getUserPassword());
+        System.out.println("userID: " + user.getUserID());
+        
+        User loginUser = userService.adminLogin(user);
+        if (loginUser != null) {
+            System.out.println("Admin login successful: " + loginUser);
+            return Result.success(loginUser);
+        } else {
+            System.out.println("Admin login failed - user not found or password incorrect");
+            return Result.error("管理员账号或密码错误");
+        }
+    }
+
     @PostMapping("/register")
     public Result register(@RequestBody User user) {
         // 调试日志

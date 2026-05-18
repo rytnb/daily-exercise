@@ -1,5 +1,6 @@
 package com.example.myapplication.network;
 
+import com.example.myapplication.model.AdminUser;
 import com.example.myapplication.model.OrdinaryUser;
 import com.example.myapplication.model.Result;
 import com.example.myapplication.model.User;
@@ -12,6 +13,9 @@ public interface ApiService {
 
     @POST("api/auth/login")
     Call<Result<User>> login(@Body User user);
+
+    @POST("api/auth/admin/login")
+    Call<Result<User>> adminLogin(@Body User user);
 
     @POST("api/auth/register")
     Call<Result<String>> register(@Body User user);

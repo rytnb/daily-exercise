@@ -5,6 +5,7 @@ import com.example.dailyexerciseauth.entity.User;
 
 public interface UserService {
     User login(User user);
+    User adminLogin(User user);
     boolean register(User user);
     boolean update(OrdinaryUser user);
     OrdinaryUser getUserInfo(User user);

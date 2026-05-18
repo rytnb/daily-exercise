@@ -6,6 +6,9 @@ COLLATE utf8mb4_general_ci;
 
 USE `daily_exercise_db`;
 
+-- 禁用外键约束检查（避免删除表时冲突）
+SET FOREIGN_KEY_CHECKS=0;
+
 -- --------------------------------------------------------
 -- 1. 用户表 (User)
 -- 截图依据：1、User类
@@ -13,7 +16,8 @@ USE `daily_exercise_db`;
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `userID` INT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID，主键自增',
-  `userPassword` VARCHAR(200) NOT NULL COMMENT '登录密码'
+  `userPassword` VARCHAR(200) NOT NULL COMMENT '登录密码',
+  `userType` TINYINT NOT NULL DEFAULT 1 COMMENT '用户类型：0-管理员，1-普通用户'
 ) COMMENT='用户基类，存储用户通用信息';
 
 -- --------------------------------------------------------
@@ -22,9 +26,8 @@ CREATE TABLE `user` (
 -- --------------------------------------------------------
 DROP TABLE IF EXISTS `ordinary_user`;
 CREATE TABLE `ordinary_user` (
-  `userID` INT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID，主键自增',
+  `userID` INT PRIMARY KEY COMMENT '用户ID，主键',
   `userName` VARCHAR(100) COMMENT '用户名',
-  `userPassword` VARCHAR(200) NOT NULL COMMENT '登录密码',
   `phoneNumber` VARCHAR(11) UNIQUE COMMENT '手机号，唯一',
   `userMailbox` VARCHAR(100) UNIQUE COMMENT '邮箱，唯一',
   `gender` VARCHAR(10) COMMENT '性别',
@@ -32,7 +35,7 @@ CREATE TABLE `ordinary_user` (
   `registerTime` DATETIME COMMENT '注册时间',
   `age` INT COMMENT '年龄',
   `weight` FLOAT COMMENT '体重',
-  -- 外键约束：关联 user 表（如果需要，但截图中未明确，可根据设计决定是否保留）
+  -- 外键约束：关联 user 表
   CONSTRAINT `fk_ordinary_user_user` FOREIGN KEY (`userID`) REFERENCES `user`(`userID`)
 ) COMMENT='普通用户表，继承 User 类，存储额外个人信息';
 
@@ -42,11 +45,16 @@ CREATE TABLE `ordinary_user` (
 -- --------------------------------------------------------
 DROP TABLE IF EXISTS `administrator`;
 CREATE TABLE `administrator` (
-  `userID` INT PRIMARY KEY AUTO_INCREMENT COMMENT '管理员ID，主键自增',
-  `userPassword` VARCHAR(200) NOT NULL COMMENT '登录密码',
+  `userID` INT PRIMARY KEY COMMENT '管理员ID，主键',
+  `adminId` VARCHAR(50) UNIQUE COMMENT '管理员编号，如ADM20231127001',
+  `adminName` VARCHAR(100) COMMENT '管理员姓名',
   -- 外键约束：关联 user 表
   CONSTRAINT `fk_administrator_user` FOREIGN KEY (`userID`) REFERENCES `user`(`userID`)
 ) COMMENT='管理员表，继承 User 类';
+
+-- 初始化管理员数据
+INSERT INTO `user` (`userPassword`, `userType`) VALUES ('admin123', 0);
+INSERT INTO `administrator` (`userID`, `adminId`, `adminName`) VALUES (LAST_INSERT_ID(), 'ADM2023001', 'admin');
 
 -- --------------------------------------------------------
 -- 4. 运动项目表 (SportsEvent)
@@ -146,3 +154,6 @@ CREATE TABLE `favorite` (
   -- 外键约束
   CONSTRAINT `fk_favorite_user` FOREIGN KEY (`userID`) REFERENCES `ordinary_user`(`userID`)
 ) COMMENT='收藏表，存储用户收藏的帖子或计划';
+
+-- 重新启用外键约束检查
+SET FOREIGN_KEY_CHECKS=1;
