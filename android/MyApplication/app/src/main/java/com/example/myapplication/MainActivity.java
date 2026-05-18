@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText etUsername, etPassword;
     private Button btnLogin;
     private TextView tvRegister, tvForgetPassword;
+    private CheckBox cbAdminLogin, cbAgreePrivacy;
     private ApiService apiService;
 
     @Override
@@ -44,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.login_button);
         tvRegister = findViewById(R.id.tv_register);
         tvForgetPassword = findViewById(R.id.tv_forget_password);
+        cbAdminLogin = findViewById(R.id.identity);
+        cbAgreePrivacy = findViewById(R.id.cb_agree);
     }
 
     private void initListener() {
@@ -99,7 +103,18 @@ public class MainActivity extends AppCompatActivity {
                     Result<User> result = response.body();
                     if (result.getCode() == 200) {
                         Toast.makeText(MainActivity.this, "登录成功", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(MainActivity.this, ChangeUserInfo.class);
+                        
+                        boolean isAdminLogin = cbAdminLogin.isChecked();
+                        boolean isAgreePrivacy = cbAgreePrivacy.isChecked();
+                        
+                        Class<?> targetActivity;
+                        if (isAdminLogin && isAgreePrivacy) {
+                            targetActivity = AdminPage.class;
+                        } else {
+                            targetActivity = HomePage.class;
+                        }
+                        
+                        Intent intent = new Intent(MainActivity.this, targetActivity);
                         // 将 User 对象转换为 OrdinaryUser 对象
                         if (result.getData() != null) {
                             User user = result.getData();

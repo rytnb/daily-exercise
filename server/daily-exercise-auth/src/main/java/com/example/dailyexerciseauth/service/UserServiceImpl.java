@@ -1,4 +1,4 @@
-package com.example.dailyexerciseauth.service.impl;
+package com.example.dailyexerciseauth.service;
 
 import com.example.dailyexerciseauth.entity.OrdinaryUser;
 import com.example.dailyexerciseauth.entity.User;
